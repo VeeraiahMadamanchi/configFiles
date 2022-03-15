@@ -1,1 +1,118 @@
+server:
+  port: ${SERVER_PORT:8080}
+  tomcat:
+    mbeanregistry:
+      enabled: true
+management:
+  server:
+    port: ${ACTUATOR_PORT:${SERVER_PORT:8080}}
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      group:
+        liveness:
+          include: livenessState, redis
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus, refresh
 
+endpoints:
+  pega-recommendations-path: /v1/next-best-actions/rankings
+  pega-recommendations-path-2: /v2/next-best-actions/rankings
+  eligibility:
+    sales:
+      host: https://wiremock-127-review-aemmock-mhkb2a.dsp.intdigital.ee.co.uk
+      nba-path: /v1/eligibility
+    service:
+      host: https://wiremock-127-review-aemmock-mhkb2a.dsp.intdigital.ee.co.uk
+      nba-path: /v1/service-eligibility
+  aem:
+    host: https://ee.co.uk
+    nba-path: /api/nba/{recommendationId}.model.json
+  kafka:
+    host: "https://api-test1.ee.co.uk"
+    nba-path: /v1/integrations
+
+topic:
+  name: recommendations_topic
+
+template-properties:
+  elements: "elements"
+  title: "title"
+  items: ":items"
+  itemsOrder: ":itemsOrder"
+  elementsOrder: "elementsOrder"
+  valueJson: "value"
+  dataType: "dataType"
+  image: "image"
+  ctas: "ctas"
+  cta: "ctaApp"
+kafka-producer:
+  path: /v1/integrations
+dsp:
+  oauth:
+    jwt:
+      public-key: |
+        -----BEGIN PUBLIC KEY-----
+        MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoc1f/Y+ir3rXeKTwcPUT
+        RbFB+kMESkN/mh559C5buAYm64+A36dY1C9QogFI7iHtDqoPyd7qTAOVt0FmiRKm
+        N2jwBkKJR2y3Pt2Jq+c2DaXu22pIh7SiGXrjZZ49efxCSXUXp0tBtTOTB9IlXPNN
+        6F5dULb1MqiUlTZhs5aHsMGt38+QFupczyiFj1YRlqlNU1NZ58FiC1F26eaJ55Pe
+        h978zgkSCjSGaBsMUSOIXjLoXL68pqGpsQUM/s7oNfHlwZMDY4kxNTmVGyQgcqWf
+        kmf6+wLoQqXxCW0OQzLwUtJgnriw2+I/bnr0tLVYcyJ+6ZaMZxkhVzqrCToqEghU
+        OQIDAQAB
+        -----END PUBLIC KEY-----
+    enabled: false
+  paths:
+    exclude-security: /**
+spring:
+  zipkin:
+    enabled: true
+  jackson:
+    default-property-inclusion: non_null
+    application:
+      name: nba-api-v2
+    main:
+      allow-bean-definition-overriding: true
+      banner-mode: off
+    resources:
+      add-mappings: false
+    mvc:
+      throw-exception-if-no-handler-found: true
+      favicon:
+        enabled: false
+  sleuth:
+    log.slf4j.whitelisted-mdc-keys: apigw-tracking-header
+    baggage:
+      remote-fields: apigw-tracking-header
+      correlation-fields: apigw-tracking-header
+      tag-fields: apigw-tracking-header
+  redis:
+    host: redis-headless
+    password: ${redis-password}
+  main:
+    banner-mode: off
+logging:
+  level:
+    com.bt.interacions.nba.v2.PegaClient: DEBUG
+    com.bt.interacions.nba.v2.AemClient: DEBUG
+microservice:
+  whitelisted:
+    headers:
+      - apigw-tracking-header
+cache:
+  clear:
+    cron: 0 0 0 * * ?
