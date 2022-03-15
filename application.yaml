@@ -4,13 +4,10 @@ spring:
   cloud:
     config:
       server:
+        profile: test
+        label: sample-config
         composite:
-        -
-          type: svn
-          uri: file:///path/to/svn/repo
-        -
-          type: git
-          uri: file:///path/to/rex/git/repo
-        -
-          type: git
-          uri: file:///path/to/walter/git/repo
+        - type: aws
+          bucket: srikanth-sg-demo-config-server
+          region: us-east-1
+        bootstrap: true
